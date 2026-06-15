@@ -16,61 +16,34 @@ def get_base_path():
         return sys._MEIPASS
     return os.path.dirname(os.path.abspath(__file__))
 
-def ensure_ffmpeg():
-    if sys.platform == 'win32':
-        app_data = os.path.join(os.path.expanduser('~'), 'AppData', 'Roaming', 'SpotDown', 'bin')
-        ext = '.exe'
-        ffprobe_url = "https://github.com/ffbinaries/ffbinaries-prebuilt/releases/download/v6.1/ffprobe-6.1-win-64.zip"
-    elif sys.platform == 'darwin':
-        app_data = os.path.join(os.path.expanduser('~'), '.spotdown', 'bin')
-        ext = ''
-        ffprobe_url = "https://github.com/ffbinaries/ffbinaries-prebuilt/releases/download/v6.1/ffprobe-6.1-osx-64.zip"
-    else:
-        app_data = os.path.join(os.path.expanduser('~'), '.spotdown', 'bin')
-        ext = ''
-        ffprobe_url = "https://github.com/ffbinaries/ffbinaries-prebuilt/releases/download/v6.1/ffprobe-6.1-linux-64.zip"
-
-    os.makedirs(app_data, exist_ok=True)
+def ensure_dependencies():
+    # Automatically download ffmpeg and deno required by spotdl and yt-dlp to bypass YouTube bot protections
+    import builtins
+    import spotdl.utils.console
+    from spotdl.utils.config import get_spotdl_path
     
-    ffmpeg_dest = os.path.join(app_data, f'ffmpeg{ext}')
-    ffprobe_dest = os.path.join(app_data, f'ffprobe{ext}')
-    
-    if not os.path.exists(ffmpeg_dest):
-        try:
-            ffmpeg_src = imageio_ffmpeg.get_ffmpeg_exe()
-            shutil.copy2(ffmpeg_src, ffmpeg_dest)
-            if sys.platform != 'win32':
-                os.chmod(ffmpeg_dest, 0o755)
-        except Exception as e:
-            pass
+    # Add spotdl directory to PATH so yt-dlp can find the downloaded binaries
+    spotdl_dir = str(get_spotdl_path())
+    if spotdl_dir not in os.environ["PATH"]:
+        os.environ["PATH"] += os.pathsep + spotdl_dir
         
-    if not os.path.exists(ffprobe_dest):
-        try:
-            req = urllib.request.Request(ffprobe_url, headers={'User-Agent': 'Mozilla/5.0'})
-            with urllib.request.urlopen(req) as response:
-                with zipfile.ZipFile(io.BytesIO(response.read())) as z:
-                    for name in z.namelist():
-                        if 'ffprobe' in name.lower():
-                            with open(ffprobe_dest, 'wb') as f:
-                                f.write(z.read(name))
-                            break
-            if sys.platform != 'win32':
-                os.chmod(ffprobe_dest, 0o755)
-        except Exception:
-            pass
-            
-    # Also add the spotdl user directory to PATH so yt-dlp can find Deno
+    # Mock input to always return 'y' to prevent blocking the server if it asks to overwrite
+    original_input = builtins.input
+    builtins.input = lambda prompt: 'y'
+    
     try:
-        from spotdl.utils.config import get_spotdl_path
-        spotdl_dir = str(get_spotdl_path())
-        if spotdl_dir not in os.environ["PATH"]:
-            os.environ["PATH"] += os.pathsep + spotdl_dir
-    except Exception:
-        pass
-            
-    try:os.environ["PATH"] += os.pathsep + app_data
-    except Exception: pass
-    return app_data
+        print("Ensuring FFmpeg is installed...")
+        spotdl.utils.console.download_ffmpeg()
+    except Exception as e:
+        print("FFmpeg setup error (safe to ignore if already installed):", e)
+        
+    try:
+        print("Ensuring Deno is installed...")
+        spotdl.utils.console.download_deno()
+    except Exception as e:
+        print("Deno setup error (safe to ignore if already installed):", e)
+        
+    builtins.input = original_input
 
 # WORKER PROCESS FOR SPOTDL
 if __name__ == '__main__':
@@ -86,7 +59,7 @@ if __name__ == '__main__':
         from spotdl import Spotdl
         from spotdl.utils.config import DEFAULT_CONFIG
         
-        ensure_ffmpeg()
+        ensure_dependencies()
         
         temp_dir = os.path.join(get_base_path(), 'temp_downloads')
         os.makedirs(temp_dir, exist_ok=True)
@@ -158,7 +131,7 @@ if __name__ == '__main__':
 
 class Api:
     def __init__(self):
-        ensure_ffmpeg()
+        ensure_dependencies()
 
     def run_worker(self, task_type, query):
         try:
