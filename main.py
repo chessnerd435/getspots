@@ -27,21 +27,23 @@ def ensure_dependencies():
     if spotdl_dir not in os.environ["PATH"]:
         os.environ["PATH"] += os.pathsep + spotdl_dir
         
-    # Mock input to always return 'y' to prevent blocking the server if it asks to overwrite
+    # Mock input to always return 'n' to prevent re-downloading if it somehow asks
     original_input = builtins.input
-    builtins.input = lambda prompt: 'y'
+    builtins.input = lambda prompt: 'n'
     
     try:
-        print("Ensuring FFmpeg is installed...")
-        spotdl.utils.console.download_ffmpeg()
+        if not spotdl.utils.console.get_local_ffmpeg():
+            print("Ensuring FFmpeg is installed...")
+            spotdl.utils.console.download_ffmpeg()
     except Exception as e:
-        print("FFmpeg setup error (safe to ignore if already installed):", e)
+        print("FFmpeg setup error:", e)
         
     try:
-        print("Ensuring Deno is installed...")
-        spotdl.utils.console.download_deno()
+        if not spotdl.utils.console.get_local_deno() and not spotdl.utils.console.is_deno_installed():
+            print("Ensuring Deno is installed...")
+            spotdl.utils.console.download_deno()
     except Exception as e:
-        print("Deno setup error (safe to ignore if already installed):", e)
+        print("Deno setup error:", e)
         
     builtins.input = original_input
 
