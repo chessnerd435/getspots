@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spotify Downloader</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="background-blobs">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+    </div>
+
+    <main class="container">
+        <div class="glass-panel">
+            <header class="header">
+                <div class="logo">
+                    <i class="fa-brands fa-spotify"></i>
+                    <h1>Spot<span>Down</span></h1>
+                </div>
+                <p class="subtitle">Search and download Spotify songs instantly</p>
+            </header>
+
+            <form id="searchForm" class="search-form">
+                <div class="input-group">
+                    <i class="fa-solid fa-search input-icon"></i>
+                    <input type="text" id="searchInput" placeholder="Enter song name, artist, or Spotify link..." required autocomplete="off">
+                </div>
+                
+                <button type="submit" id="searchBtn" class="search-btn">
+                    <span class="btn-text">Search</span>
+                </button>
+            </form>
+
+            <div id="loader" class="loader-container hidden">
+                <div class="spinner"></div>
+                <p>Searching Spotify...</p>
+            </div>
+
+            <div id="resultsContainer" class="results-container hidden">
+                <!-- Results will be injected here via JS -->
+            </div>
+            
+            <div id="downloadStatus" class="download-status hidden">
+                <div class="progress-bar">
+                    <div class="progress" id="progressBar"></div>
+                </div>
+                <p id="statusText">Downloading track...</p>
+            </div>
+            
+            <div id="successStatus" class="success-status hidden">
+                <i class="fa-solid fa-circle-check"></i>
+                <p id="successText">Downloaded to your Downloads folder!</p>
+                <button id="backBtn" class="back-btn">Go Back</button>
+            </div>
+        </div>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>
