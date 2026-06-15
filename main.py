@@ -87,6 +87,7 @@ if __name__ == '__main__':
             user_auth=False,
             headless=False,
             downloader_settings={
+                'audio_providers': ['piped', 'youtube'],
                 'output': os.path.join(temp_dir, '{artists} - {title}.{ext}'),
                 'format': 'mp3',
                 'bitrate': '320k',
