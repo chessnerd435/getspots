@@ -56,10 +56,20 @@ def ensure_ffmpeg():
                             break
             if sys.platform != 'win32':
                 os.chmod(ffprobe_dest, 0o755)
-        except Exception as e:
+        except Exception:
             pass
             
-    os.environ["PATH"] += os.pathsep + app_data
+    # Also add the spotdl user directory to PATH so yt-dlp can find Deno
+    try:
+        from spotdl.utils.config import get_spotdl_path
+        spotdl_dir = str(get_spotdl_path())
+        if spotdl_dir not in os.environ["PATH"]:
+            os.environ["PATH"] += os.pathsep + spotdl_dir
+    except Exception:
+        pass
+            
+    try:os.environ["PATH"] += os.pathsep + app_data
+    except Exception: pass
     return app_data
 
 # WORKER PROCESS FOR SPOTDL
